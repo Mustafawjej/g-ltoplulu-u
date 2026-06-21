@@ -3,86 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Q&A Website</title>
+    <title>Q&A Hub | Cyberpunk Edition</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JavaScript Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Custom styles for image preview */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        .cyber-card {
+            background-color: #161616;
+            border: 1px solid #262626;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cyber-card:hover {
+            border-color: #ff0033;
+            box-shadow: 0 0 15px rgba(255, 0, 51, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background-color: #ff0033;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 0, 51, 0.3);
+        }
+
+        .btn-primary:hover {
+            background-color: #e5002d;
+            box-shadow: 0 0 20px rgba(255, 0, 51, 0.5);
+            transform: scale(1.02);
+        }
+
+        .text-glow {
+            text-shadow: 0 0 10px rgba(255, 0, 51, 0.5);
+        }
+
+        .accent-border {
+            border-color: #ff0033;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 4px;
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #ff0033;
+            border-radius: 10px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .answers-expand {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s ease-out, opacity 0.3s ease-out;
+            opacity: 0;
+        }
+
+        .answers-expand.open {
+            grid-template-rows: 1fr;
+            opacity: 1;
+        }
+
+        .answers-content {
+            overflow: hidden;
+        }
+
         #image-preview img {
             max-height: 200px;
             object-fit: contain;
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="min-h-screen">
 
     <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-10">
-        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <!-- Replace 'logo.png' with your actual logo file name -->
+    <header class="bg-black/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center gap-4">
+            <!-- Logo Area -->
+            <div class="flex items-center space-x-2 shrink-0">
                 <img src="logo.png" alt="Logo" class="h-10 w-auto">
-                <span class="text-xl font-bold text-blue-600">Q&A Hub</span>
+                <span class="text-xl font-bold text-[#ff0033] tracking-tighter uppercase italic text-glow">Q&A Hub</span>
             </div>
-            <button id="open-modal" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+
+            <!-- Search Bar -->
+            <div class="flex-grow w-full max-w-xl relative group">
+                <input
+                    type="text"
+                    id="search-bar"
+                    placeholder="Search the nexus..."
+                    class="w-full bg-[#161616] border border-white/10 rounded-full py-2 px-10 focus:outline-none focus:border-[#ff0033] transition-all text-sm group-hover:border-white/20"
+                >
+                <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-500 group-focus-within:text-[#ff0033] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+
+            <!-- Action Button -->
+            <button id="open-modal" class="btn-primary text-white px-6 py-2 rounded-full font-bold text-sm uppercase tracking-widest shrink-0">
                 Ask Question
             </button>
         </div>
     </header>
 
+    <!-- Filter Bar -->
+    <div class="border-b border-white/5 bg-black/40 sticky top-[73px] md:top-[73px] z-40 backdrop-blur-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3">
+            <div id="category-filters" class="flex gap-2 overflow-x-auto custom-scrollbar pb-2 no-scrollbar">
+                <button data-category="all" class="category-pill active bg-[#ff0033] text-white px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all uppercase">All</button>
+                <button data-category="Software" class="category-pill border border-white/10 hover:border-[#ff0033] px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all uppercase text-gray-400 hover:text-white">Software</button>
+                <button data-category="Math" class="category-pill border border-white/10 hover:border-[#ff0033] px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all uppercase text-gray-400 hover:text-white">Math</button>
+                <button data-category="General Knowledge" class="category-pill border border-white/10 hover:border-[#ff0033] px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all uppercase text-gray-400 hover:text-white">General Knowledge</button>
+                <button data-category="Design" class="category-pill border border-white/10 hover:border-[#ff0033] px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all uppercase text-gray-400 hover:text-white">Design</button>
+                <button data-category="Gaming" class="category-pill border border-white/10 hover:border-[#ff0033] px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all uppercase text-gray-400 hover:text-white">Gaming</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <main class="max-w-3xl mx-auto px-4 py-8">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">Latest Questions</h2>
+        <h2 class="text-sm uppercase tracking-[0.3em] font-bold mb-8 text-[#ff0033]">Incoming Questions</h2>
 
         <!-- Question Feed -->
         <div id="question-feed" class="space-y-6">
-            <!-- Questions will appear here -->
-            <div class="text-center py-10 text-gray-500">Loading questions...</div>
+            <div class="text-center py-10 text-gray-500">Scanning frequency...</div>
         </div>
     </main>
 
     <!-- Modal for Asking Question -->
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-20">
-        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 relative">
-            <button id="close-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+    <div id="modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-[100] backdrop-blur-md">
+        <div class="bg-[#111111] border border-[#ff0033]/30 rounded-2xl shadow-2xl max-w-lg w-full p-8 relative animate-fade-in">
+            <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-[#ff0033] transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
 
-            <h3 class="text-xl font-bold mb-4">Ask a Question</h3>
+            <h3 class="text-2xl font-bold mb-6 text-glow">New Broadcast</h3>
 
             <form id="question-form">
-                <textarea
-                    id="question-text"
-                    rows="4"
-                    class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-4"
-                    placeholder="What is your question?"
-                    required
-                ></textarea>
+                <div class="mb-4">
+                    <label class="block text-xs uppercase font-bold text-gray-500 mb-2">Category</label>
+                    <select id="question-category" class="w-full bg-[#161616] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#ff0033]">
+                        <option value="General Knowledge">General Knowledge</option>
+                        <option value="Software">Software</option>
+                        <option value="Math">Math</option>
+                        <option value="Design">Design</option>
+                        <option value="Gaming">Gaming</option>
+                    </select>
+                </div>
 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Add an image (optional)</label>
+                    <label class="block text-xs uppercase font-bold text-gray-500 mb-2">Your Message</label>
+                    <textarea
+                        id="question-text"
+                        rows="4"
+                        class="w-full bg-[#161616] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#ff0033] outline-none"
+                        placeholder="What needs answering?"
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-xs uppercase font-bold text-gray-500 mb-2 text-sm font-medium text-gray-700 mb-2">Visual Data (optional)</label>
                     <input
                         type="file"
                         id="question-image"
                         accept="image/*"
-                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                        class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#ff0033]/10 file:text-[#ff0033] hover:file:bg-[#ff0033]/20 cursor-pointer"
                     >
                 </div>
 
-                <!-- Image Preview Area -->
-                <div id="image-preview" class="mb-4 hidden">
-                    <p class="text-xs text-gray-500 mb-1">Preview:</p>
-                    <img src="" alt="Preview" class="rounded-lg border">
+                <div id="image-preview" class="mb-6 hidden">
+                    <img src="" alt="Preview" class="rounded-lg border border-white/10">
                 </div>
 
                 <button
                     type="submit"
                     id="submit-btn"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition disabled:bg-blue-300"
+                    class="w-full btn-primary text-white font-bold py-4 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest"
                 >
                     Post Question
                 </button>
@@ -92,8 +211,7 @@
 
     <script>
         // --- STEP 1: CONFIGURATION ---
-        // Replace these with your own Supabase project details from the Settings > API page
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_URL = 'https://ghwdgvvqbmfrhaxbzjsj.supabase.co';
         const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -104,15 +222,21 @@
         const closeModalBtn = document.getElementById('close-modal');
         const questionForm = document.getElementById('question-form');
         const questionInput = document.getElementById('question-text');
+        const categoryInput = document.getElementById('question-category');
         const imageInput = document.getElementById('question-image');
         const imagePreview = document.getElementById('image-preview');
         const previewImg = imagePreview.querySelector('img');
         const submitBtn = document.getElementById('submit-btn');
         const questionFeed = document.getElementById('question-feed');
+        const searchBar = document.getElementById('search-bar');
+        const categoryPills = document.querySelectorAll('.category-pill');
+
+        let allQuestions = [];
+        let currentFilter = 'all';
+        let searchQuery = '';
 
         // --- FUNCTIONS ---
 
-        // Toggle Modal
         function toggleModal() {
             modal.classList.toggle('hidden');
             if (modal.classList.contains('hidden')) {
@@ -124,7 +248,6 @@
         openModalBtn.addEventListener('click', toggleModal);
         closeModalBtn.addEventListener('click', toggleModal);
 
-        // Image Preview Logic
         imageInput.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
@@ -139,7 +262,6 @@
             }
         });
 
-        // Fetch Questions from Supabase
         async function fetchQuestions() {
             const { data, error } = await _supabase
                 .from('questions')
@@ -148,45 +270,197 @@
 
             if (error) {
                 console.error('Error fetching questions:', error);
-                questionFeed.innerHTML = `<p class="text-red-500 text-center">Failed to load questions. Check your Supabase configuration.</p>`;
+                questionFeed.innerHTML = `<p class="text-[#ff0033] text-center p-8 bg-[#ff0033]/5 rounded-xl">Signal Interrupted: Check your credentials.</p>`;
                 return;
             }
 
-            renderQuestions(data);
+            allQuestions = data;
+            applyFilters();
         }
 
-        // Render Questions to the UI
+        function applyFilters() {
+            let filtered = allQuestions;
+
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(q => q.category === currentFilter);
+            }
+
+            if (searchQuery) {
+                filtered = filtered.filter(q => q.content.toLowerCase().includes(searchQuery.toLowerCase()));
+            }
+
+            renderQuestions(filtered);
+        }
+
         function renderQuestions(questions) {
             if (questions.length === 0) {
-                questionFeed.innerHTML = `<p class="text-gray-500 text-center">No questions yet. Be the first to ask!</p>`;
+                questionFeed.innerHTML = `<p class="text-gray-500 text-center py-20 uppercase tracking-widest text-xs">No signals found in this frequency.</p>`;
                 return;
             }
 
             questionFeed.innerHTML = questions.map(q => `
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-gray-800 text-lg mb-4">${q.content}</p>
-                    ${q.image_url ? `<img src="${q.image_url}" class="rounded-lg max-h-96 w-auto mb-4 border" alt="Question Image">` : ''}
-                    <div class="text-xs text-gray-400">
-                        Posted on ${new Date(q.created_at).toLocaleString()}
+                <div class="cyber-card p-6 rounded-2xl animate-fade-in" data-id="${q.id}">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-[#ff0033]/10 text-[#ff0033] border border-[#ff0033]/20">
+                            ${q.category || 'General'}
+                        </span>
+                        <span class="text-[10px] text-gray-500 font-bold uppercase">
+                            ${new Date(q.created_at).toLocaleDateString()}
+                        </span>
+                    </div>
+
+                    <p class="text-gray-100 text-lg mb-6 leading-relaxed">${q.content}</p>
+
+                    ${q.image_url ? `<img src="${q.image_url}" class="rounded-xl w-full mb-6 border border-white/5 opacity-80 hover:opacity-100 transition-opacity" alt="Data Visualization">` : ''}
+
+                    <div class="flex items-center gap-6 border-t border-white/5 pt-4">
+                        <button onclick="handleLike('${q.id}', ${q.likes || 0})" class="flex items-center gap-2 group">
+                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#ff0033]/20 transition-all">
+                                <svg class="w-4 h-4 text-gray-400 group-hover:text-[#ff0033] transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"></path>
+                                </svg>
+                            </div>
+                            <span class="text-sm font-bold text-gray-500 group-hover:text-[#ff0033] transition-colors">${q.likes || 0}</span>
+                        </button>
+
+                        <button onclick="toggleAnswers('${q.id}')" class="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors flex items-center gap-2">
+                            View Answers / Reply
+                            <svg class="w-4 h-4 transition-transform arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                    </div>
+
+                    <!-- Answers Panel -->
+                    <div id="answers-panel-${q.id}" class="answers-expand mt-0">
+                        <div class="answers-content">
+                            <div class="pt-6 border-t border-white/5 space-y-4">
+                                <div id="answers-list-${q.id}" class="space-y-4">
+                                    <!-- Answers will load here -->
+                                </div>
+                                <div class="mt-4 flex gap-2">
+                                    <input type="text" id="answer-input-${q.id}" placeholder="Transmit answer..." class="flex-grow bg-[#000] border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#ff0033]">
+                                    <button onclick="postAnswer('${q.id}')" class="bg-[#ff0033] text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest">Post</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        // Handle Form Submission
+        // --- INTERACTIVITY LOGIC ---
+
+        searchBar.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            applyFilters();
+        });
+
+        categoryPills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                categoryPills.forEach(p => {
+                    p.classList.remove('bg-[#ff0033]', 'text-white', 'active');
+                    p.classList.add('border', 'border-white/10', 'text-gray-400');
+                });
+                pill.classList.remove('border', 'border-white/10', 'text-gray-400');
+                pill.classList.add('bg-[#ff0033]', 'text-white', 'active');
+                currentFilter = pill.dataset.category;
+                applyFilters();
+            });
+        });
+
+        window.handleLike = async (id, currentLikes) => {
+            const { error } = await _supabase
+                .from('questions')
+                .update({ likes: currentLikes + 1 })
+                .eq('id', id);
+
+            if (error) {
+                console.error('Error liking:', error);
+                return;
+            }
+
+            // Local update for speed
+            const q = allQuestions.find(item => item.id === id);
+            if (q) q.likes = (q.likes || 0) + 1;
+            applyFilters();
+        };
+
+        window.toggleAnswers = async (id) => {
+            const panel = document.getElementById(`answers-panel-${id}`);
+            const arrow = panel.previousElementSibling.querySelector('.arrow-icon');
+
+            if (!panel.classList.contains('open')) {
+                panel.classList.add('open');
+                panel.classList.remove('mt-0');
+                panel.classList.add('mt-6');
+                arrow.style.transform = 'rotate(180deg)';
+                await fetchAnswers(id);
+            } else {
+                panel.classList.remove('open');
+                panel.classList.add('mt-0');
+                panel.classList.remove('mt-6');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        };
+
+        async function fetchAnswers(questionId) {
+            const list = document.getElementById(`answers-list-${questionId}`);
+            list.innerHTML = `<p class="text-[10px] uppercase text-gray-600 animate-pulse">Decrypting replies...</p>`;
+
+            const { data, error } = await _supabase
+                .from('answers')
+                .select('*')
+                .eq('question_id', questionId)
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                list.innerHTML = `<p class="text-xs text-[#ff0033]">Failed to fetch answers.</p>`;
+                return;
+            }
+
+            if (data.length === 0) {
+                list.innerHTML = `<p class="text-xs text-gray-600 italic">No responses recorded for this broadcast.</p>`;
+                return;
+            }
+
+            list.innerHTML = data.map(a => `
+                <div class="bg-black/40 p-4 rounded-xl border border-white/5">
+                    <p class="text-sm text-gray-300 mb-1">${a.content}</p>
+                    <p class="text-[8px] text-gray-600 uppercase font-bold">${new Date(a.created_at).toLocaleString()}</p>
+                </div>
+            `).join('');
+        }
+
+        window.postAnswer = async (questionId) => {
+            const input = document.getElementById(`answer-input-${questionId}`);
+            const content = input.value;
+            if (!content) return;
+
+            const { error } = await _supabase
+                .from('answers')
+                .insert([{ question_id: questionId, content: content }]);
+
+            if (error) {
+                alert('Transmission failed.');
+                return;
+            }
+
+            input.value = '';
+            await fetchAnswers(questionId);
+        };
+
         questionForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const content = questionInput.value;
+            const category = categoryInput.value;
             const imageFile = imageInput.files[0];
 
             submitBtn.disabled = true;
-            submitBtn.innerText = 'Posting...';
+            submitBtn.innerText = 'Transmitting...';
 
             let imageUrl = null;
 
             try {
-                // 1. Upload image if exists
                 if (imageFile) {
                     const fileName = `${Date.now()}_${imageFile.name}`;
                     const { data: uploadData, error: uploadError } = await _supabase.storage
@@ -195,7 +469,6 @@
 
                     if (uploadError) throw uploadError;
 
-                    // Get public URL
                     const { data: publicUrlData } = _supabase.storage
                         .from('question-images')
                         .getPublicUrl(fileName);
@@ -203,30 +476,27 @@
                     imageUrl = publicUrlData.publicUrl;
                 }
 
-                // 2. Save question to database
                 const { error: insertError } = await _supabase
                     .from('questions')
-                    .insert([{ content: content, image_url: imageUrl }]);
+                    .insert([{ content: content, image_url: imageUrl, category: category, likes: 0 }]);
 
                 if (insertError) throw insertError;
 
-                // Success!
                 toggleModal();
                 fetchQuestions();
             } catch (err) {
                 console.error('Error:', err);
-                alert('Something went wrong. Please check your Supabase settings and try again.');
+                alert('Encryption failed. Check your Supabase settings.');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerText = 'Post Question';
             }
         });
 
-        // Initial fetch
         if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
             fetchQuestions();
         } else {
-            questionFeed.innerHTML = `<p class="text-amber-600 text-center p-4 bg-amber-50 rounded-lg">Welcome! Please follow the README instructions to connect your Supabase account and see questions here.</p>`;
+            questionFeed.innerHTML = `<p class="text-[#ff0033] text-center p-8 bg-[#ff0033]/5 rounded-xl uppercase tracking-tighter font-bold">Awaiting Credentials... Setup your Supabase Keys in the nexus core.</p>`;
         }
     </script>
 </body>

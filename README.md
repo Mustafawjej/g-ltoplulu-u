@@ -1,64 +1,81 @@
-# Q&A Website Setup Guide
+# Q&A Nexus | Cyberpunk Setup Guide
 
-This guide will help you set up your modern Q&A website using Supabase. No coding knowledge is required!
+This guide will help you set up your high-performance Q&A website using Supabase. No coding knowledge is required!
 
 ## Step 1: Create a Supabase Account
 1. Go to [supabase.com](https://supabase.com/) and click **"Start your project"**.
 2. Sign up with your GitHub account or Email.
 3. Click **"New Project"**.
-4. Select an Organization (or create one), give your project a name (e.g., "QA-Hub"), and set a secure password.
-5. Choose a region close to you and click **"Create new project"**. Wait a few minutes for it to initialize.
+4. Select an Organization, give your project a name (e.g., "QA-Nexus"), and set a secure password.
+5. Choose a region close to you and click **"Create new project"**.
 
-## Step 2: Create the Database Table
-1. In your Supabase dashboard, click on **"Table Editor"** (the table icon on the left sidebar).
-2. Click **"Create a new table"**.
-3. Name the table: `questions`.
-4. Enable **"Row Level Security (RLS)"** (it should be enabled by default).
-5. Columns to add:
-   - `id`: Should be `uuid` (default), Primary Key.
-   - `created_at`: Should be `timestamptz` (default), default value `now()`.
-   - `content`: Select type `text`.
-   - `image_url`: Select type `text` (Allow Nullable).
-6. Click **"Save"**.
+## Step 2: Initialize Database Tables
+We need to set up two tables: `questions` and `answers`.
 
-## Step 3: Set up Storage for Images
-1. Click on **"Storage"** (the bucket icon on the left sidebar).
+### 1. The Questions Table
+1. In the sidebar, click on **"SQL Editor"** (the `>_` icon).
+2. Click **"New query"**.
+3. Copy and paste the following code and click **"Run"**:
+
+```sql
+create table questions (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamptz default now(),
+  content text not null,
+  image_url text,
+  category text default 'General Knowledge',
+  likes integer default 0
+);
+
+-- Enable Row Level Security
+alter table questions enable row level security;
+
+-- Create policies to allow anyone to read and post
+create policy "Allow public read access" on questions for select using (true);
+create policy "Allow public insert access" on questions for insert with check (true);
+create policy "Allow public update access" on questions for update using (true);
+```
+
+### 2. The Answers Table
+1. Click **"New query"** again.
+2. Copy and paste the following code and click **"Run"**:
+
+```sql
+create table answers (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamptz default now(),
+  question_id uuid references questions(id) on delete cascade,
+  content text not null
+);
+
+-- Enable Row Level Security
+alter table answers enable row level security;
+
+-- Create policies
+create policy "Allow public read access" on answers for select using (true);
+create policy "Allow public insert access" on answers for insert with check (true);
+```
+
+## Step 3: Set up Image Storage
+1. Click on **"Storage"** (the bucket icon) in the sidebar.
 2. Click **"New bucket"**.
 3. Name it: `question-images`.
-4. Make sure to toggle **"Public"** to ON so everyone can see the uploaded images.
+4. Toggle **"Public"** to **ON**.
 5. Click **"Save"**.
+6. Click **"New Policy"** for the bucket.
+7. Select **"Get started quickly"**.
+8. Add both **"Give users access to SELECT"** (Read) and **"Give users access to INSERT"** (Upload) policies.
 
-## Step 4: Configure Permissions (RLS Policies)
-By default, Supabase blocks all access for security. We need to allow people to read and post questions.
+## Step 4: Connect your Website
+1. Go to **"Project Settings"** (the gear icon at bottom left) > **"API"**.
+2. Copy your **"Project URL"**.
+3. Open `index.html` in a text editor.
+4. Replace `YOUR_SUPABASE_URL` (around line 214) with your URL.
+5. Copy your **"anon public"** key from Supabase.
+6. Replace `YOUR_SUPABASE_ANON_KEY` (around line 215) with your key.
+7. Save the file.
 
-### For the `questions` table:
-1. Go to **"Authentication"** > **"Policies"** in the sidebar.
-2. Find the `questions` table and click **"New Policy"**.
-3. Choose **"Get started quickly"** (Templates).
-4. Select **"Enable read access for all users"** and click **"Use this template"**, then **"Review"**, then **"Save"**.
-5. Click **"New Policy"** again for the `questions` table.
-6. Select **"Enable insert access for all users"** (or "Enable insert for anonymous users"), click **"Use this template"**, then **"Review"**, then **"Save"**.
-
-### For the Storage bucket:
-1. Stay in **"Policies"** and click the **"Storage"** tab at the top.
-2. Find `question-images` and click **"New Policy"**.
-3. Choose **"Get started quickly"**.
-4. Select **"Give users access to SELECT"** (Read), use the template, and save.
-5. Click **"New Policy"** again, select **"Give users access to INSERT"** (Upload), use the template, and save.
-
-## Step 5: Connect your Website
-1. Go to **"Project Settings"** (the gear icon at the bottom left).
-2. Click **"API"**.
-3. Copy the **"Project URL"**.
-4. Open the `index.html` file in a text editor (like Notepad or VS Code).
-5. Find line 93: `const SUPABASE_URL = 'YOUR_SUPABASE_URL';` and replace `YOUR_SUPABASE_URL` with your actual URL.
-6. Go back to Supabase and copy the **"anon public"** key.
-7. Find line 94: `const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';` and replace `YOUR_SUPABASE_ANON_KEY` with your actual key.
-8. Save the `index.html` file.
-
-## Step 6: Run and Test
-1. Make sure your logo image is in the same folder as `index.html` and named `logo.png`.
-2. Simply **double-click `index.html`** to open it in your web browser.
-3. Click "Ask Question", type something, upload an image, and hit "Post Question"!
-
-Your question should appear instantly in the feed.
+## Step 5: Final Check
+1. Ensure your logo is named `logo.png` and is in the same folder.
+2. **Double-click `index.html`** to enter the nexus.
+3. Test the search bar, category filters, likes, and reply system!
