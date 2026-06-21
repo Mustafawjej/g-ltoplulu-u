@@ -8,84 +8,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #000000;
-            color: #ffffff;
-        }
-
-        .cyber-card {
-            background-color: #161616;
-            border: 1px solid #262626;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .cyber-card:hover {
-            border-color: #ff0033;
-            box-shadow: 0 0 15px rgba(255, 0, 51, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .btn-primary {
-            background-color: #ff0033;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 10px rgba(255, 0, 51, 0.3);
-        }
-
-        .btn-primary:hover {
-            background-color: #e5002d;
-            box-shadow: 0 0 20px rgba(255, 0, 51, 0.5);
-            transform: scale(1.02);
-        }
-
-        .text-glow {
-            text-shadow: 0 0 10px rgba(255, 0, 51, 0.5);
-        }
-
-        .custom-scrollbar::-webkit-scrollbar {
-            height: 4px;
-            width: 4px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #000;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #ff0033;
-            border-radius: 10px;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-
-        .answers-expand {
-            display: grid;
-            grid-template-rows: 0fr;
-            transition: grid-template-rows 0.3s ease-out, opacity 0.3s ease-out;
-            opacity: 0;
-        }
-
-        .answers-expand.open {
-            grid-template-rows: 1fr;
-            opacity: 1;
-        }
-
-        .answers-content {
-            overflow: hidden;
-        }
-
-        #image-preview img {
-            max-height: 200px;
-            object-fit: contain;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #000000; color: #ffffff; }
+        .cyber-card { background-color: #161616; border: 1px solid #262626; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .cyber-card:hover { border-color: #ff0033; box-shadow: 0 0 15px rgba(255, 0, 51, 0.1); transform: translateY(-2px); }
+        .btn-primary { background-color: #ff0033; transition: all 0.3s ease; box-shadow: 0 0 10px rgba(255, 0, 51, 0.3); }
+        .btn-primary:hover { background-color: #e5002d; box-shadow: 0 0 20px rgba(255, 0, 51, 0.5); transform: scale(1.02); }
+        .text-glow { text-shadow: 0 0 10px rgba(255, 0, 51, 0.5); }
+        .answers-expand { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease-out, opacity 0.3s ease-out; opacity: 0; }
+        .answers-expand.open { grid-template-rows: 1fr; opacity: 1; }
+        .answers-content { overflow: hidden; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -96,60 +27,43 @@
                 <img src="logo.png" alt="Logo" class="h-10 w-auto">
                 <span class="text-xl font-bold text-[#ff0033] tracking-tighter uppercase italic text-glow">Q&A Hub</span>
             </div>
-
             <div class="flex-grow w-full max-w-xl relative group">
-                <input 
-                    type="text" 
-                    id="search-bar"
-                    placeholder="Search the nexus..." 
-                    class="w-full bg-[#161616] border border-white/10 rounded-full py-2 px-10 focus:outline-none focus:border-[#ff0033] transition-all text-sm group-hover:border-white/20"
-                >
-                <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-500 group-focus-within:text-[#ff0033] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
+                <input type="text" id="search-bar" placeholder="Search the nexus..." class="w-full bg-[#161616] border border-white/10 rounded-full py-2 px-10 focus:outline-none focus:border-[#ff0033] transition-all text-sm">
             </div>
-
-            <button id="open-modal" class="btn-primary text-white px-6 py-2 rounded-full font-bold text-sm uppercase tracking-widest shrink-0">
-                Ask Question
-            </button>
+            <button id="open-modal" class="btn-primary text-white px-6 py-2 rounded-full font-bold text-sm uppercase tracking-widest shrink-0">Ask Question</button>
         </div>
     </header>
 
     <div class="border-b border-white/5 bg-black/40 sticky top-[73px] z-40 backdrop-blur-sm">
         <div class="max-w-6xl mx-auto px-4 py-3">
-            <div id="category-filters" class="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
-                <button data-category="all" class="category-pill active bg-[#ff0033] text-white px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all uppercase">All</button>
-                <button data-category="Software" class="category-pill border border-white/10 hover:border-[#ff0033] px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all uppercase text-gray-400 hover:text-white">Software</button>
-                <button data-category="Math" class="category-pill border border-white/10 hover:border-[#ff0033] px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all uppercase text-gray-400 hover:text-white">Math</button>
-                <button data-category="General Knowledge" class="category-pill border border-white/10 hover:border-[#ff0033] px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all uppercase text-gray-400 hover:text-white">General Knowledge</button>
-                <button data-category="Design" class="category-pill border border-white/10 hover:border-[#ff0033] px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all uppercase text-gray-400 hover:text-white">Design</button>
-                <button data-category="Gaming" class="category-pill border border-white/10 hover:border-[#ff0033] px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all uppercase text-gray-400 hover:text-white">Gaming</button>
+            <div id="category-filters" class="flex gap-2 overflow-x-auto pb-2">
+                <button data-category="all" class="category-pill active bg-[#ff0033] text-white px-4 py-1 rounded-full text-xs font-bold uppercase">All</button>
+                <button data-category="Software" class="category-pill border border-white/10 px-4 py-1 rounded-full text-xs font-bold uppercase text-gray-400 hover:text-white">Software</button>
+                <button data-category="Math" class="category-pill border border-white/10 px-4 py-1 rounded-full text-xs font-bold uppercase text-gray-400 hover:text-white">Math</button>
+                <button data-category="General Knowledge" class="category-pill border border-white/10 px-4 py-1 rounded-full text-xs font-bold uppercase text-gray-400 hover:text-white">General Knowledge</button>
+                <button data-category="Design" class="category-pill border border-white/10 px-4 py-1 rounded-full text-xs font-bold uppercase text-gray-400 hover:text-white">Design</button>
+                <button data-category="Gaming" class="category-pill border border-white/10 px-4 py-1 rounded-full text-xs font-bold uppercase text-gray-400 hover:text-white">Gaming</button>
             </div>
         </div>
     </div>
 
     <main class="max-w-3xl mx-auto px-4 py-8">
         <h2 class="text-sm uppercase tracking-[0.3em] font-bold mb-8 text-[#ff0033]">Incoming Questions</h2>
-        
         <div id="question-feed" class="space-y-6">
             <div class="text-center py-10 text-gray-500">Scanning frequency...</div>
         </div>
     </main>
 
     <div id="modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-[100] backdrop-blur-md">
-        <div class="bg-[#111111] border border-[#ff0033]/30 rounded-2xl shadow-2xl max-w-lg w-full p-8 relative animate-fade-in">
-            <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-[#ff0033] transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+        <div class="bg-[#111111] border border-[#ff0033]/30 rounded-2xl shadow-2xl max-w-lg w-full p-8 relative">
+            <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-[#ff0033]">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
-            
             <h3 class="text-2xl font-bold mb-6 text-glow">New Broadcast</h3>
-            
             <form id="question-form">
                 <div class="mb-4">
                     <label class="block text-xs uppercase font-bold text-gray-500 mb-2">Category</label>
-                    <select id="question-category" class="w-full bg-[#161616] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#ff0033]">
+                    <select id="question-category" class="w-full bg-[#161616] border border-white/10 rounded-lg p-3 text-white focus:outline-none">
                         <option value="General Knowledge">General Knowledge</option>
                         <option value="Software">Software</option>
                         <option value="Math">Math</option>
@@ -157,62 +71,26 @@
                         <option value="Gaming">Gaming</option>
                     </select>
                 </div>
-
-                <div class="mb-4">
+                <div class="mb-6">
                     <label class="block text-xs uppercase font-bold text-gray-500 mb-2">Your Message</label>
-                    <textarea 
-                        id="question-text" 
-                        rows="4" 
-                        class="w-full bg-[#161616] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#ff0033] outline-none"
-                        placeholder="What needs answering?"
-                        required
-                    ></textarea>
+                    <textarea id="question-text" rows="4" class="w-full bg-[#161616] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#ff0033]" placeholder="What needs answering?" required></textarea>
                 </div>
-                
-                <div class="mb-4">
-                    <label class="block text-xs uppercase font-bold text-gray-500 mb-2">Visual Data (optional)</label>
-                    <input 
-                        type="file" 
-                        id="question-image" 
-                        accept="image/*"
-                        class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#ff0033]/10 file:text-[#ff0033] hover:file:bg-[#ff0033]/20 cursor-pointer"
-                    >
-                </div>
-                
-                <div id="image-preview" class="mb-6 hidden">
-                    <img src="" alt="Preview" class="rounded-lg border border-white/10">
-                </div>
-                
-                <button 
-                    type="submit" 
-                    id="submit-btn"
-                    class="w-full btn-primary text-white font-bold py-4 rounded-xl transition disabled:opacity-50 uppercase tracking-widest"
-                >
-                    Post Question
-                </button>
+                <button type="submit" id="submit-btn" class="w-full btn-primary text-white font-bold py-4 rounded-xl uppercase tracking-widest">Post Question</button>
             </form>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
         const SUPABASE_URL = 'https://ghwdgvvqbmfrhaxbzjsj.supabase.co';
-        
-        // GERÇEK ANON KEY'İNİ BURAYA EKLEDİM:
-        const SUPABASE_KEY = 'sb_publishable_ahhk6NLuXelSLTloLZ3_gg_6uD3G9mP7XF1A88nO_gC_d78Z_9p2'; 
-
+        const SUPABASE_KEY = 'sb_publishable_ahhk6NLuXelSLTloLZ3_gg_6uD3G9mP7XF1A88nO_gC_d78Z_9p2';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // --- UI ELEMENTS ---
         const modal = document.getElementById('modal');
         const openModalBtn = document.getElementById('open-modal');
         const closeModalBtn = document.getElementById('close-modal');
         const questionForm = document.getElementById('question-form');
         const questionInput = document.getElementById('question-text');
         const categoryInput = document.getElementById('question-category');
-        const imageInput = document.getElementById('question-image');
-        const imagePreview = document.getElementById('image-preview');
-        const previewImg = imagePreview.querySelector('img');
         const submitBtn = document.getElementById('submit-btn');
         const questionFeed = document.getElementById('question-feed');
         const searchBar = document.getElementById('search-bar');
@@ -224,99 +102,51 @@
 
         function toggleModal() {
             modal.classList.toggle('hidden');
-            if (modal.classList.contains('hidden')) {
-                questionForm.reset();
-                imagePreview.classList.add('hidden');
-            }
+            if (modal.classList.contains('hidden')) questionForm.reset();
         }
 
         openModalBtn.addEventListener('click', toggleModal);
         closeModalBtn.addEventListener('click', toggleModal);
 
-        imageInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImg.src = e.target.result;
-                    imagePreview.classList.remove('hidden');
-                }
-                reader.readAsDataURL(file);
-            } else {
-                imagePreview.classList.add('hidden');
-            }
-        });
-
         async function fetchQuestions() {
-            const { data, error } = await _supabase
-                .from('questions')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error(error);
-                questionFeed.innerHTML = `<p class="text-[#ff0033] text-center p-8">Signal Interrupted: Check backend rules.</p>`;
-                return;
-            }
-
-            allQuestions = data || [];
-            applyFilters();
+            const { data, error } = await _supabase.from('questions').select('*').order('created_at', { ascending: false });
+            if (!error) { allQuestions = data || []; applyFilters(); }
         }
 
         function applyFilters() {
             let filtered = allQuestions;
-            if (currentFilter !== 'all') {
-                filtered = filtered.filter(q => q.category === currentFilter);
-            }
-            if (searchQuery) {
-                filtered = filtered.filter(q => q.content && q.content.toLowerCase().includes(searchQuery.toLowerCase()));
-            }
+            if (currentFilter !== 'all') filtered = filtered.filter(q => q.category === currentFilter);
+            if (searchQuery) filtered = filtered.filter(q => q.content && q.content.toLowerCase().includes(searchQuery.toLowerCase()));
             renderQuestions(filtered);
         }
 
         function renderQuestions(questions) {
             if (questions.length === 0) {
-                questionFeed.innerHTML = `<p class="text-gray-500 text-center py-20 uppercase tracking-widest text-xs">No signals found in this frequency.</p>`;
+                questionFeed.innerHTML = `<p class="text-gray-500 text-center py-10 text-xs uppercase tracking-widest">No signals found.</p>`;
                 return;
             }
-
             questionFeed.innerHTML = questions.map(q => `
-                <div class="cyber-card p-6 rounded-2xl animate-fade-in">
+                <div class="cyber-card p-6 rounded-2xl">
                     <div class="flex justify-between items-start mb-4">
-                        <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-[#ff0033]/10 text-[#ff0033] border border-[#ff0033]/20">
-                            ${q.category || 'General'}
-                        </span>
-                        <span class="text-[10px] text-gray-500 font-bold uppercase">
-                            ${new Date(q.created_at).toLocaleDateString()}
-                        </span>
+                        <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-[#ff0033]/10 text-[#ff0033] border border-[#ff0033]/20">${q.category || 'General'}</span>
+                        <span class="text-[10px] text-gray-500 font-bold uppercase">${new Date(q.created_at).toLocaleDateString()}</span>
                     </div>
-                    
                     <p class="text-gray-100 text-lg mb-6 leading-relaxed">${q.content}</p>
-                    
-                    ${q.image_url ? `<img src="${q.image_url}" class="rounded-xl w-full mb-6 border border-white/5 opacity-80 hover:opacity-100 transition-opacity">` : ''}
-                    
                     <div class="flex items-center gap-6 border-t border-white/5 pt-4">
-                        <button onclick="handleLike('${q.id}', ${q.likes || 0})" class="flex items-center gap-2 group">
-                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#ff0033]/20 transition-all">
-                                <svg class="w-4 h-4 text-gray-400 group-hover:text-[#ff0033] transition-colors" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"></path>
-                                </svg>
-                            </div>
-                            <span class="text-sm font-bold text-gray-500 group-hover:text-[#ff0033] transition-colors">${q.likes || 0}</span>
+                        <button onclick="handleLike('${q.id}', ${q.likes || 0})" class="flex items-center gap-2 text-gray-500 hover:text-[#ff0033] transition-colors">
+                            <span class="text-sm font-bold">❤️ ${q.likes || 0}</span>
                         </button>
-
-                        <button onclick="toggleAnswers('${q.id}')" class="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors flex items-center gap-2">
+                        <button onclick="toggleAnswers('${q.id}')" class="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">
                             View Answers / Reply
                         </button>
                     </div>
-
                     <div id="answers-panel-${q.id}" class="answers-expand mt-0">
                         <div class="answers-content">
                             <div class="pt-6 border-t border-white/5 space-y-4">
                                 <div id="answers-list-${q.id}" class="space-y-4"></div>
                                 <div class="mt-4 flex gap-2">
-                                    <input type="text" id="answer-input-${q.id}" placeholder="Transmit answer..." class="flex-grow bg-[#000] border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#ff0033]">
-                                    <button onclick="postAnswer('${q.id}')" class="bg-[#ff0033] text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest">Post</button>
+                                    <input type="text" id="answer-input-${q.id}" placeholder="Transmit answer..." class="flex-grow bg-[#000] border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-[#ff0033]">
+                                    <button onclick="postAnswer('${q.id}')" class="bg-[#ff0033] text-white px-4 py-2 rounded-lg text-xs font-bold uppercase">Post</button>
                                 </div>
                             </div>
                         </div>
@@ -325,97 +155,47 @@
             `).join('');
         }
 
-        searchBar.addEventListener('input', (e) => {
-            searchQuery = e.target.value;
-            applyFilters();
-        });
+        searchBar.addEventListener('input', (e) => { searchQuery = e.target.value; applyFilters(); });
 
         categoryPills.forEach(pill => {
             pill.addEventListener('click', () => {
-                categoryPills.forEach(p => {
-                    p.classList.remove('bg-[#ff0033]', 'text-white', 'active');
-                    p.classList.add('border', 'border-white/10', 'text-gray-400');
-                });
-                pill.classList.remove('border', 'border-white/10', 'text-gray-400');
-                pill.classList.add('bg-[#ff0033]', 'text-white', 'active');
-                currentFilter = pill.dataset.category;
-                applyFilters();
+                categoryPills.forEach(p => { p.classList.remove('bg-[#ff0033]', 'text-white'); p.classList.add('text-gray-400'); });
+                pill.classList.remove('text-gray-400'); pill.classList.add('bg-[#ff0033]', 'text-white');
+                currentFilter = pill.dataset.category; applyFilters();
             });
         });
 
         window.handleLike = async (id, currentLikes) => {
             const { error } = await _supabase.from('questions').update({ likes: currentLikes + 1 }).eq('id', id);
-            if (!error) {
-                const q = allQuestions.find(item => item.id == id);
-                if (q) q.likes = (q.likes || 0) + 1;
-                applyFilters();
-            }
+            if (!error) { fetchQuestions(); }
         };
 
         window.toggleAnswers = async (id) => {
             const panel = document.getElementById(`answers-panel-${id}`);
-            if (!panel.classList.contains('open')) {
-                panel.classList.add('open');
-                await fetchAnswers(id);
-            } else {
-                panel.classList.remove('open');
-            }
+            panel.classList.toggle('open'); if (panel.classList.contains('open')) await fetchAnswers(id);
         };
 
         async function fetchAnswers(questionId) {
             const list = document.getElementById(`answers-list-${questionId}`);
-            list.innerHTML = `<p class="text-[10px] uppercase text-gray-600">Decrypting replies...</p>`;
-            const { data, error } = await _supabase.from('answers').select('*').eq('question_id', questionId).order('created_at', { ascending: true });
-            
-            if (error || !data || data.length === 0) {
-                list.innerHTML = `<p class="text-xs text-gray-600 italic">No responses recorded.</p>`;
-                return;
-            }
-            list.innerHTML = data.map(a => `
-                <div class="bg-black/40 p-4 rounded-xl border border-white/5">
-                    <p class="text-sm text-gray-300 mb-1">${a.content}</p>
-                </div>
-            `).join('');
+            const { data } = await _supabase.from('answers').select('*').eq('question_id', questionId).order('created_at', { ascending: true });
+            if (!data || data.length === 0) { list.innerHTML = `<p class="text-xs text-gray-600 italic">No responses recorded.</p>`; return; }
+            list.innerHTML = data.map(a => `<div class="bg-black/40 p-3 rounded-xl border border-white/5 text-sm text-gray-300">${a.content}</div>`).join('');
         }
 
         window.postAnswer = async (questionId) => {
             const input = document.getElementById(`answer-input-${questionId}`);
             if (!input.value) return;
             const { error } = await _supabase.from('answers').insert([{ question_id: questionId, content: input.value }]);
-            if (!error) {
-                input.value = '';
-                await fetchAnswers(questionId);
-            }
+            if (!error) { input.value = ''; await fetchAnswers(questionId); }
         };
 
         questionForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            submitBtn.disabled = true;
-            submitBtn.innerText = 'Transmitting...';
-            let imageUrl = null;
-
-            try {
-                const imageFile = imageInput.files[0];
-                if (imageFile) {
-                    const fileName = `${Date.now()}_${imageFile.name}`;
-                    await _supabase.storage.from('question-images').upload(fileName, imageFile);
-                    const { data } = _supabase.storage.from('question-images').getPublicUrl(fileName);
-                    imageUrl = data.publicUrl;
-                }
-
-                await _supabase.from('questions').insert([{ content: questionInput.value, image_url: imageUrl, category: categoryInput.value, likes: 0 }]);
-                toggleModal();
-                fetchQuestions();
-            } catch (err) {
-                console.error(err);
-                alert('Encryption failed. Check your Supabase settings.');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = 'Post Question';
-            }
+            e.preventDefault(); submitBtn.disabled = true;
+            const { error } = await _supabase.from('questions').insert([{ content: questionInput.value, category: categoryInput.value, likes: 0 }]);
+            if (!error) { toggleModal(); fetchQuestions(); }
+            submitBtn.disabled = false;
         });
 
-        // Start
         fetchQuestions();
     </script>
 </body>
